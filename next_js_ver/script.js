@@ -3,83 +3,83 @@ import GUI from 'lil-gui';
 import Stats from 'three/addons/libs/stats.module.js';
 
 const vertexShader = `
-  void main() {
-    gl_Position = vec4(position, 1.0);
-  }
-`;
+    void main() {
+        gl_Position = vec4(position, 1.0);
+    }
+    `;
 
 const fragmentShader = `
-    uniform vec2 u_resolution;
-    uniform vec2 u_mouse;
-    uniform float u_time;
-    uniform float scale;
-    uniform bool draw_center;
-    uniform vec3 start_color;
-    uniform vec3 end_color;
-    uniform bool color_based_in_position;
-    uniform bool draw_isolines;
+        uniform vec2 u_resolution;
+        uniform vec2 u_mouse;
+        uniform float u_time;
+        uniform float scale;
+        uniform bool draw_center;
+        uniform vec3 start_color;
+        uniform vec3 end_color;
+        uniform bool color_based_in_position;
+        uniform bool draw_isolines;
 
-    vec2 random2(vec2 p) {
-        vec3 p3 = fract(vec3(p.xyx) * vec3(0.1031, 0.1030, 0.0973));
-        p3 += dot(p3, p3.yzx + 33.33);
-        return fract((p3.xx + p3.yz) * p3.zy);
-    }
-
-    void main() {
-        vec2 st = gl_FragCoord.xy/u_resolution.xy;
-        st.x *= u_resolution.x/u_resolution.y;
-        vec3 color = vec3(0);
-
-        st *= scale;
-
-        vec2 i_st = floor(st);
-        vec2 f_st = fract(st);
-
-        float m_dist = 10.;  // minimum distance
-        vec2 m_point;
-
-        for (int y= -1; y <= 1; y++) {
-            for (int x= -1; x <= 1; x++) {
-                
-                vec2 neighbor = vec2(float(x),float(y));
-                vec2 point = random2(i_st + neighbor);
-
-                point = 0.5 + 0.5*sin(u_time + 6.2831*point);
-
-                vec2 diff = neighbor + point - f_st;
-
-                float dist = length(diff);
-
-                if(dist < m_dist){
-
-                    m_dist = dist;
-                    m_point = point;
-                }
-    
-            }
+        vec2 random2(vec2 p) {
+            vec3 p3 = fract(vec3(p.xyx) * vec3(0.1031, 0.1030, 0.0973));
+            p3 += dot(p3, p3.yzx + 33.33);
+            return fract((p3.xx + p3.yz) * p3.zy);
         }
 
-        if(color_based_in_position){
-            //color += vec3(0,0,1)*m_dist;
-            color += vec3(m_point,0)/1.0;
+        void main() {
+            vec2 st = gl_FragCoord.xy/u_resolution.xy;
+            st.x *= u_resolution.x/u_resolution.y;
+            
+            vec3 color = vec3(0);
 
+            st *= scale;
 
-        } else {
-            color += start_color + (end_color - start_color)*m_dist; 
-        }
+            vec2 i_st = floor(st);
+            vec2 f_st = fract(st);
 
+            float m_dist = 10.;  // minimum distance
+            vec2 m_point;
 
-        if(draw_center){
-            color += 1.-step(.02, m_dist);
-        };
+            for (int y= -1; y <= 1; y++) {
+                for (int x= -1; x <= 1; x++) {
+                    
+                    vec2 neighbor = vec2(float(x),float(y));
+                    vec2 point = random2(i_st + neighbor);
 
-        if(draw_isolines){
-            color -= step(.7,abs(sin(27.0*m_dist)))*.5;
-        }
+                    point = 0.5 + 0.5*sin(u_time + 6.2831*point);
+
+                    vec2 diff = neighbor + point - f_st;
+
+                    float dist = length(diff);
+
+                    if(dist < m_dist){
+
+                        m_dist = dist;
+                        m_point = point;
+                    }
         
-        gl_FragColor = vec4(color,1.0);
-    }
-`;
+                }
+            }
+
+            if(color_based_in_position){
+                color += vec3(m_point,0);
+
+
+            } else {
+                color += start_color + (end_color - start_color)*m_dist; 
+            }
+
+
+            if(draw_center){
+                color += 1.-step(.02, m_dist);
+            };
+
+            if(draw_isolines){
+                color -= step(.7,abs(sin(27.0*m_dist)))*.5;
+            }
+            
+            gl_FragColor = vec4(color,1.0);
+        }
+    `;
 
 const start_width = 600;
 const start_height = 600;
@@ -94,19 +94,19 @@ renderer.setSize(start_width, start_height);
 let stats = new Stats();
 
 document.getElementById("container").appendChild(renderer.domElement);
-document.getElementById("container").appendChild( stats.dom );
+document.getElementById("container").appendChild(stats.dom);
 
 
 const geom = new THREE.BufferGeometry();
 const vertices = new Float32Array([
-  -1, -1, 0,
-   1, -1, 0, 
-   1,  1, 0,  
-  -1,  1, 0   
+    -1, -1, 0,
+    1, -1, 0,
+    1, 1, 0,
+    -1, 1, 0
 ]);
 
 const indices = new Uint16Array([
-  0, 1, 2,  0, 2, 3
+    0, 1, 2, 0, 2, 3
 ]);
 
 geom.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
@@ -114,19 +114,19 @@ geom.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
 geom.setIndex(new THREE.BufferAttribute(indices, 1));
 
 const material = new THREE.ShaderMaterial({
-  vertexShader,
-  fragmentShader,
-  uniforms: {
-    u_resolution: { value: new THREE.Vector2(600,600) },
-    u_mouse: { value: new THREE.Vector2(0, 0) },
-    u_time: { value: 0 },
-    scale: { value: 2},
-    start_color: {value: new THREE.Vector3(0,0,0)},
-    end_color: {value: new THREE.Vector3(1,1,1)},
-    draw_center: {value: false},
-    color_based_in_position: {value: false},
-    draw_isolines: {value: false}
-  }
+    vertexShader,
+    fragmentShader,
+    uniforms: {
+        u_resolution: { value: new THREE.Vector2(600, 600) },
+        u_mouse: { value: new THREE.Vector2(0, 0) },
+        u_time: { value: 0 },
+        scale: { value: 2 },
+        start_color: { value: new THREE.Vector3(0, 0, 0) },
+        end_color: { value: new THREE.Vector3(1, 1, 1) },
+        draw_center: { value: false },
+        color_based_in_position: { value: false },
+        draw_isolines: { value: false }
+    }
 });
 
 const quad = new THREE.Mesh(geom, material);
@@ -137,60 +137,60 @@ const gui = new GUI();
 let controller = {
     material: material,
     renderer: renderer,
-    startColor: [0,0,0],
-    endColor: [255,255,255],
+    startColor: [0, 0, 0],
+    endColor: [255, 255, 255],
     scale: 2,
     draw_center: false,
     draw_isolines: false,
     color_based_in_position: false,
     width: start_width,
     height: start_height,
-    
+
     setStartColor() {
-        this.material.uniforms.start_color.value = this.startColor.map((value) => value/255)
+        this.material.uniforms.start_color.value = this.startColor.map((value) => value / 255)
     },
 
     setEndColor() {
-        this.material.uniforms.end_color.value = this.endColor.map((value) => value/255)
+        this.material.uniforms.end_color.value = this.endColor.map((value) => value / 255)
     },
 
-    setScale(){
+    setScale() {
         this.material.uniforms.scale.value = this.scale
     },
 
-    setDrawCenter(){
+    setDrawCenter() {
         this.material.uniforms.draw_center.value = this.draw_center
     },
 
-    setDrawType(){
+    setDrawType() {
         this.material.uniforms.color_based_in_position.value = this.color_based_in_position
     },
 
-    setDrawIsolines(){
+    setDrawIsolines() {
         this.material.uniforms.draw_isolines.value = this.draw_isolines
     },
 
-    setResolution(){
+    setResolution() {
         this.material.uniforms.u_resolution.value.set(this.width, this.height);
         this.renderer.setSize(this.width, this.height)
     },
 
-    setTime(time){
+    setTime(time) {
         this.material.uniforms.u_time.value = time;
     }
 }
 
-gui.addColor(controller, 'startColor',255).onChange(() => controller.setStartColor());
-gui.addColor(controller, 'endColor',255).onChange(() => controller.setEndColor());
-gui.add(controller, 'scale', 1, 200).onChange(() => controller.setScale());
+gui.addColor(controller, 'startColor', 255).onChange(() => controller.setStartColor());
+gui.addColor(controller, 'endColor', 255).onChange(() => controller.setEndColor());
+gui.add(controller, 'scale', 1, 1000).onChange(() => controller.setScale());
 gui.add(controller, 'draw_center').onChange(() => controller.setDrawCenter());
 gui.add(controller, 'draw_isolines').onChange(() => controller.setDrawIsolines())
 gui.add(controller, 'color_based_in_position').onChange(() => controller.setDrawType());
-gui.add(controller, 'height',100,2000).onChange(() => controller.setResolution());
-gui.add(controller, 'width',100,2000).onChange(() => controller.setResolution());
+gui.add(controller, 'height', 100, 2000).onChange(() => controller.setResolution());
+gui.add(controller, 'width', 100, 2000).onChange(() => controller.setResolution());
 
 function animate(time) {
-  controller.setTime(time * 0.001);
-  renderer.render(scene, camera);
-  stats.update();
+    controller.setTime(time * 0.001);
+    renderer.render(scene, camera);
+    stats.update();
 }
