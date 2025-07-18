@@ -200,7 +200,7 @@
 
     gui.addColor(controller, 'startColor', 255).onChange(() => controller.setStartColor());
     gui.addColor(controller, 'endColor', 255).onChange(() => controller.setEndColor());
-    gui.add(controller, 'scale', 1, 1000).onChange(() => controller.setScale());
+    gui.add(controller, 'scale', 1, 250).onChange(() => controller.setScale());
     gui.add(controller, 'draw_center').onChange(() => controller.setDrawCenter());
     gui.add(controller, 'draw_isolines').onChange(() => controller.setDrawIsolines())
     gui.add(controller, 'color_based_in_position').onChange(() => controller.setDrawType());
